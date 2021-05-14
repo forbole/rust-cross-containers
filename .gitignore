@@ -1,0 +1,5 @@
+# Ignore jetbrains directories
+.idea/
+
+# Ignore generated logs
+*.log

@@ -1,0 +1,41 @@
+# Docker file to corsscompile rust code to macOS
+ARG RUST_VERSION
+FROM rust-builder:${RUST_VERSION}
+ARG IOS_SDK
+
+RUN \
+    # Check for mandatory build arguments
+    : "${IOS_SDK:?Build argument needs to be set and non-empty.}"
+
+COPY files/iPhoneOS${IOS_SDK}.sdk.tar.xz /opt
+COPY files/iPhoneSimulator${IOS_SDK}.sdk.tar.xz /opt
+
+# Install dev tools
+RUN apt-get update && apt-get install -y git autoconf libxml2-dev libssl-dev clang cmake zlib1g-dev
+
+RUN cd /opt && \
+    git clone --progress https://github.com/tpoechtrager/cctools-port.git && \
+    cd /opt/cctools-port && \
+    git checkout 14ab64360c556c1263e022318ee4be1077d7a839 && \
+    usage_examples/ios_toolchain/build.sh /opt/iPhoneOS${IOS_SDK}.sdk.tar.xz arm64 && \
+    mkdir -p /opt/ioscross/arm64 && \
+    mv /opt/cctools-port/usage_examples/ios_toolchain/target/* /opt/ioscross/arm64 && \
+    sed -i 's#^TRIPLE=.*#TRIPLE="x86_64-apple-darwin11"#' usage_examples/ios_toolchain/build.sh && \
+    usage_examples/ios_toolchain/build.sh /opt/iPhoneSimulator${IOS_SDK}.sdk.tar.xz x86_64 && \
+    mkdir -p /opt/ioscross/x86_64 && \
+    mv usage_examples/ios_toolchain/target/* /opt/ioscross/x86_64 && \
+    rm /opt/iPhoneSimulator${IOS_SDK}.sdk.tar.xz /opt/iPhoneOS${IOS_SDK}.sdk.tar.xz
+
+# Add iocross binaries to path
+ENV PATH="/opt/ioscross/arm64/bin:/opt/ioscross/x86_64/bin:${PATH}"
+
+# Add rust device target
+RUN rustup target add aarch64-apple-ios x86_64-apple-ios
+
+# Create a fake xcrun to make cargo happy
+RUN printf "#!/bin/bash \necho /opt/ioscross/\$IOS_ARCH/SDK/iPhoneOS14.4.sdk" >> /usr/bin/xcrun && \
+    chmod +x /usr/bin/xcrun
+
+WORKDIR /workdir
+
+CMD /bin/bash

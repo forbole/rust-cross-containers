@@ -1,0 +1,36 @@
+# Docker file to corsscompile rust code to macOS
+ARG RUST_VERSION
+FROM rust-builder:${RUST_VERSION}
+ARG OSX_SDK
+
+# Check args
+RUN \
+    # Check for mandatory build arguments
+    : "${OSX_SDK:?Build argument needs to be set and non-empty.}"
+
+# Install dev tools
+RUN apt-get update && apt-get install -y git autoconf libxml2-dev libssl-dev clang cmake zlib1g-dev
+
+# Prepare osxcross directory
+RUN git clone https://github.com/tpoechtrager/osxcross /opt/osxcross && \
+    cd /opt/osxcross && \
+    git checkout 8a716a43a72dab1db9630d7824ee0af3730cb8f9
+COPY files/MacOSX${OSX_SDK}.sdk.tar.xz /opt/osxcross/tarballs
+RUN cd /opt/osxcross && \
+    UNATTENDED=1 ./build.sh && \
+    rm /opt/osxcross/tarballs/MacOSX${OSX_SDK}.sdk.tar.xz && \
+    chmod -R 777 /opt/osxcross
+
+# Add osxcross binaries to path
+ENV PATH="/opt/osxcross/target/bin:${PATH}"
+
+# Add rust device target
+RUN rustup target add x86_64-apple-darwin && \
+    printf '[target.x86_64-apple-darwin]\nlinker = "x86_64-apple-darwin20.2-clang"\n' >> $CARGO_HOME/config
+
+# Fix cc selection
+ENV CC_x86_64_apple_darwin=x86_64-apple-darwin20.2-cc
+
+WORKDIR /workdir
+
+CMD /bin/bash

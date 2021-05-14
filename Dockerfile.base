@@ -1,0 +1,23 @@
+# Docker file to corsscompile rust code to macOS
+FROM debian:buster-slim
+ARG RUST_VERSION
+
+RUN \
+    # Check for mandatory build arguments
+        : "${RUST_VERSION:?Build argument needs to be set and non-empty.}"
+
+# Enviroment variables
+ENV CARGO_HOME="/opt/cargo"
+ENV RUSTUP_HOME=$CARGO_HOME
+ENV PATH="$CARGO_HOME/bin:${PATH}"
+
+# Install dev tools
+RUN apt-get update && apt-get install -y build-essential git wget && \
+    wget -O - https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain $RUST_VERSION
+
+# Allow everyone to write inside the cargo dir to allow compilation as the user who launch the docker container
+RUN chmod -R 777 $CARGO_HOME
+
+WORKDIR /workdir
+
+CMD /bin/bash

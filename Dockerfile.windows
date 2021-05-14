@@ -1,0 +1,11 @@
+# Docker file to corsscompile rust code to macOS
+ARG RUST_VERSION
+FROM rust-builder:${RUST_VERSION}
+
+# Install dev tools
+RUN apt-get update && apt-get install -y gcc-mingw-w64 && \
+    rustup target add x86_64-pc-windows-gnu
+
+WORKDIR /workdir
+
+CMD /bin/bash

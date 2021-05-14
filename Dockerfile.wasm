@@ -1,0 +1,17 @@
+# Docker file to compile rust code to wasm
+ARG RUST_VERSION
+FROM rust-builder:${RUST_VERSION}
+
+RUN apt-get update && apt-get -y install gnupg lsb-release software-properties-common && \
+    wget -O - https://apt.llvm.org/llvm.sh | bash -s -- 11 && \
+    ln -s /usr/bin/clang-11 /usr/bin/clang && \
+    wget -O - https://rustwasm.github.io/wasm-pack/installer/init.sh | sh && \
+    rustup target add wasm32-unknown-unknown
+
+# Define a fake home so that wasm-pack can create the .cache dir inside it.
+RUN mkdir -p /home/user && chmod -R 777 /home/user
+ENV HOME=/home/user
+
+WORKDIR /workdir
+
+CMD /bin/bash
