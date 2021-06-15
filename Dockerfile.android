@@ -23,10 +23,11 @@ RUN export NDK_ZIP="/android-ndk-${NDK_VERSION}.zip" && \
 ENV PATH="/opt/android-ndk-${NDK_VERSION}/toolchains/llvm/prebuilt/linux-x86_64/bin:${PATH}"
 
 # Install android targets
-RUN rustup target add armv7-linux-androideabi aarch64-linux-android x86_64-linux-android && \
+RUN rustup target add armv7-linux-androideabi aarch64-linux-android x86_64-linux-android i686-linux-android && \
     printf '[target.armv7-linux-androideabi]\nlinker = "armv7a-linux-androideabi29-clang"\n' >> $CARGO_HOME/config && \
     printf '[target.aarch64-linux-android]\nlinker = "aarch64-linux-android29-clang"\n' >> $CARGO_HOME/config && \
-    printf '[target.x86_64-linux-android]\nlinker = "x86_64-linux-android29-clang"\n' >> $CARGO_HOME/config
+    printf '[target.x86_64-linux-android]\nlinker = "x86_64-linux-android29-clang"\n' >> $CARGO_HOME/config && \
+    printf '[target.i686-linux-android]\nlinker = "i686-linux-android29-clang"\n' >> $CARGO_HOME/config
 
 WORKDIR /workdir
 
