@@ -8,7 +8,7 @@ See this table for the available images and the supported targets.
 | rust-builder | `x86_64-unknown-linux-gnu` |
 | windows-rust-builder| `x86_64-pc-windows-gnu` |
 | osx-rust-builder | `x86_64-apple-darwin` |
-| android-rust-builder | `armv7-linux-androideabi` `aarch64-linux-android` `x86_64-linux-android` |
+| android-rust-builder | `armv7-linux-androideabi` `aarch64-linux-android` `x86_64-linux-android` `i686-linux-android` |
 | ios-rust-builder | `aarch64-apple-ios` `x86_64-apple-ios` |
 | wasm-rust-builder | `wasm32-unknown-unknown` |
 
